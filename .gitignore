@@ -3,3 +3,7 @@ venv
 .DS_STORE
 
 __pycache__
+
+.idea
+
+target
