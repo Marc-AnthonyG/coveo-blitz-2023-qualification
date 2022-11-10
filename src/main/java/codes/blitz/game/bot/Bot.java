@@ -34,6 +34,8 @@ public class Bot
 
     public Action getNextAction(GameMessage gameMessage)
     {
+        
+
         Action action;
         // System.out.println("Destination: " + destination);
         
@@ -45,11 +47,17 @@ public class Bot
             action = new Action(ActionKind.SPAWN, gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()));
             return action;  
         }
-    //     if(gameMessage.currentTick() > 0) {
-    //     // System.out.println(gameMessage.currentLocation()==visitePositionOrder.get(destination));
-    //     // System.out.println(gameMessage.currentLocation());
-    //     // System.out.println(visitePositionOrder.get(destination));
-    // }
+        if(i >= ordreDeVisitePorts.length){
+            action = new Action(ActionKind.SAIL, moveToLastPosition(gameMessage, gameMessage.spawnLocation()));
+            return action;
+        }
+         
+        if(gameMessage.currentTick() > 0) {
+        System.out.println(i);
+        System.out.println(ordreDeVisitePorts.length);
+        System.out.println(gameMessage.currentLocation());
+        System.out.println(gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()));
+    }
 
         if (isPositionEqual(gameMessage.currentLocation(), gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()))) {
             System.out.println("docking succesful");
@@ -57,13 +65,13 @@ public class Bot
             i++;
                 
             action = new Action(ActionKind.DOCK);
-        } else {
+            return action;
+        }else  if(i < ordreDeVisitePorts.length){
             action = new Action(ActionKind.SAIL, moveToNextPort(gameMessage));
+            return action;
         }
 
-        System.out.println("Action: " + action);
-
-        return action;
+        return new Action(ActionKind.ANCHOR);
     }
 
     private void defineVisitOrderPort(GameMessage gameMessage)
@@ -89,7 +97,9 @@ public class Bot
             // visitePositionOrder.add(gameMessage.map().ports().get(i));  // ici on ajouterait les ports dans l'ordre du plus court chemin
         }
         // System.out.println( ((Tuple)visitePositionOrder.toArray()[3]).getPortIndex());
+        // visitePositionOrder.add(null)
         ordreDeVisitePorts = visitePositionOrder.toArray();
+        // ordreDeVisitePorts
         // visitePositionOrder.add(visitePositionOrder.get(0)); //On veut revenir au point de départ
 
 
@@ -138,6 +148,40 @@ public class Bot
         Direction[] possibleDirections = Direction.values();
 
         Position target = gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex());
+        Position currentLocation = gameMessage.currentLocation();
+
+        if(target.row() > currentLocation.row()) {
+            if (target.column() > currentLocation.column()) {
+                return Direction.SE;
+            } else if (target.column() < currentLocation.column()) {
+                return Direction.SW;
+            } else {
+                return Direction.S;
+            }
+        }
+        else if(target.row() < currentLocation.row())
+        {
+            if (target.column() > currentLocation.column()) {
+                return Direction.NE;
+            } else if (target.column() < currentLocation.column()) {
+                return Direction.NW;
+            } else {
+                return Direction.N;
+            }
+        } else if (target.column() > currentLocation.column()) {
+            return Direction.E;
+        } else if (target.column() < currentLocation.column()) {
+            return Direction.W;
+        }
+
+        return possibleDirections[gameMessage.currentTick() % possibleDirections.length];
+    }
+
+    public Direction moveToLastPosition(GameMessage gameMessage, Position target)
+    {
+        Direction[] possibleDirections = Direction.values();
+
+        // Position target = gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex());
         Position currentLocation = gameMessage.currentLocation();
 
         if(target.row() > currentLocation.row()) {
