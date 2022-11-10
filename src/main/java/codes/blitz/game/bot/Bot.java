@@ -28,13 +28,20 @@ public class Bot
     {
         Action action;
         System.out.println("Destination: " + destination);
-
+        
         if (gameMessage.spawnLocation() == null) {
             defineVisitOrderPort(gameMessage);
 
             action = new Action(ActionKind.SPAWN, visitePositionOrder.get(0));
+            return action;  
+        }
+        if(gameMessage.currentTick() > 0) {
+        System.out.println(gameMessage.currentLocation()==visitePositionOrder.get(destination));
+        System.out.println(gameMessage.currentLocation());
+        System.out.println(visitePositionOrder.get(destination));
+    }
 
-        } else if (gameMessage.currentLocation()==visitePositionOrder.get(destination)) {
+        if (isPositionEqual(gameMessage.currentLocation(), visitePositionOrder.get(destination))) {
             System.out.println("docking succesful");
             destination++;
             action = new Action(ActionKind.DOCK);
@@ -130,4 +137,11 @@ public class Bot
 
         return possibleDirections[gameMessage.currentTick() % possibleDirections.length];
     }
+
+    private boolean isPositionEqual(Position p1, Position p2)
+    {
+
+        return p1.row() == p2.row() && p1.column() == p2.column();
+    }
+
 }
