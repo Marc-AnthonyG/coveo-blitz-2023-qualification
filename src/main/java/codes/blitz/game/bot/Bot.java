@@ -1,10 +1,11 @@
 package codes.blitz.game.bot;
 
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
+// import java.util.ArrayList;
+// import java.util.List;
+// import java.util.Queue;
+// import java.util.SortedSet;
 
 import codes.blitz.game.message.game.ActionKind;
 import codes.blitz.game.message.game.Direction;
@@ -15,35 +16,46 @@ import codes.blitz.game.message.game.Action;
 
 public class Bot
 {
-    ArrayList<Position> visitePositionOrder;
-    int destination;
+    SortedSet<Tuple> visitePositionOrder;
+    // Iterator<Tuple> iter;
+    // Tuple currentDestination;
+    Object[] ordreDeVisitePorts;
+    int i = 0;
+
     public Bot()
     {
         System.out.println("Initializing your super duper mega bot.");
-        visitePositionOrder = new ArrayList<Position>();
-        destination = 0;
+
+        visitePositionOrder = new TreeSet<Tuple>();
+        // iter = visitePositionOrder.iterator();
+        
+        
     }
 
     public Action getNextAction(GameMessage gameMessage)
     {
         Action action;
-        System.out.println("Destination: " + destination);
+        // System.out.println("Destination: " + destination);
         
         if (gameMessage.spawnLocation() == null) {
             defineVisitOrderPort(gameMessage);
 
-            action = new Action(ActionKind.SPAWN, visitePositionOrder.get(0));
+            
+
+            action = new Action(ActionKind.SPAWN, gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()));
             return action;  
         }
-        if(gameMessage.currentTick() > 0) {
-        System.out.println(gameMessage.currentLocation()==visitePositionOrder.get(destination));
-        System.out.println(gameMessage.currentLocation());
-        System.out.println(visitePositionOrder.get(destination));
-    }
+    //     if(gameMessage.currentTick() > 0) {
+    //     // System.out.println(gameMessage.currentLocation()==visitePositionOrder.get(destination));
+    //     // System.out.println(gameMessage.currentLocation());
+    //     // System.out.println(visitePositionOrder.get(destination));
+    // }
 
-        if (isPositionEqual(gameMessage.currentLocation(), visitePositionOrder.get(destination))) {
+        if (isPositionEqual(gameMessage.currentLocation(), gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()))) {
             System.out.println("docking succesful");
-            destination++;
+
+            i++;
+                
             action = new Action(ActionKind.DOCK);
         } else {
             action = new Action(ActionKind.SAIL, moveToNextPort(gameMessage));
@@ -56,14 +68,31 @@ public class Bot
 
     private void defineVisitOrderPort(GameMessage gameMessage)
     {
+       
+        // int[][] distance;
         //double[][] distance = distanceEntreChaquePoint(gameMessage); ici on calcul la distance entre chaque port qu'on met dans un matrice
         //int [] chemin = shortestPathLength(distance,gameMessage); ici on calcul le plus court chemin pour parcourir tous les ports
 
         for (int i = 0; i < gameMessage.map().ports().size(); i++) {
-            visitePositionOrder.add(gameMessage.map().ports().get(i));  // ici on ajouterait les ports dans l'ordre du plus court chemin
-        }
+            //distance from 0,0
 
-        visitePositionOrder.add(visitePositionOrder.get(0)); //On veut revenir au point de départ
+            double distanceX = gameMessage.map().ports().get(i).row();
+            double distanceY = gameMessage.map().ports().get(i).column();
+
+            double distance = Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
+
+            visitePositionOrder.add(new Tuple(i, distance));
+
+
+            
+
+            // visitePositionOrder.add(gameMessage.map().ports().get(i));  // ici on ajouterait les ports dans l'ordre du plus court chemin
+        }
+        // System.out.println( ((Tuple)visitePositionOrder.toArray()[3]).getPortIndex());
+        ordreDeVisitePorts = visitePositionOrder.toArray();
+        // visitePositionOrder.add(visitePositionOrder.get(0)); //On veut revenir au point de départ
+
+
     }
 
     private double[][] distanceEntreChaquePoint(GameMessage gameMessage){
@@ -108,7 +137,7 @@ public class Bot
     {
         Direction[] possibleDirections = Direction.values();
 
-        Position target = visitePositionOrder.get(destination);
+        Position target = gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex());
         Position currentLocation = gameMessage.currentLocation();
 
         if(target.row() > currentLocation.row()) {
@@ -142,6 +171,37 @@ public class Bot
     {
 
         return p1.row() == p2.row() && p1.column() == p2.column();
+    }
+
+
+    class Tuple implements Comparable<Tuple>{
+        private int portIndex;
+        private double distance;
+
+        Tuple(int portIndex, double distance){
+            this.portIndex = portIndex;
+            this.distance = distance;
+        }
+
+        @Override
+        public int compareTo(Tuple t) {
+        if(this.getDistance() < t.getDistance())
+            return -1;
+        else if(this.getDistance() > t.getDistance())
+            return 1;
+        else
+            return 0;
+        }
+
+        public int getPortIndex(){
+            return this.portIndex;
+        }
+
+        public double getDistance(){
+            return this.distance;
+        }
+
+
     }
 
 }
