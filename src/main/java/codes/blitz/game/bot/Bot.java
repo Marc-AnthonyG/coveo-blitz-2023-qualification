@@ -34,39 +34,42 @@ public class Bot
 
     public Action getNextAction(GameMessage gameMessage)
     {
-        
-
         Action action;
-        // System.out.println("Destination: " + destination);
         
-        if (gameMessage.spawnLocation() == null) {
+        if (gameMessage.spawnLocation() == null) { // pour spawn
             defineVisitOrderPort(gameMessage);
-
-            
-
-            action = new Action(ActionKind.SPAWN, gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()));
-            return action;  
+            action = new Action(ActionKind.SPAWN,
+                    gameMessage.map().ports().get(((Tuple) ordreDeVisitePorts[i]).getPortIndex()));
+            return action;
         }
-        if(i >= ordreDeVisitePorts.length){
+        
+        if (i >= ordreDeVisitePorts.length) {
+            if (isPositionEqual(gameMessage.currentLocation(), gameMessage.spawnLocation())) {
+                action = new Action(ActionKind.DOCK);
+                return action;
+            }
             action = new Action(ActionKind.SAIL, moveToLastPosition(gameMessage, gameMessage.spawnLocation()));
             return action;
         }
          
         if(gameMessage.currentTick() > 0) {
-        System.out.println(i);
-        System.out.println(ordreDeVisitePorts.length);
-        System.out.println(gameMessage.currentLocation());
-        System.out.println(gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()));
-    }
+            System.out.println(i);
+            System.out.println(ordreDeVisitePorts.length);
+            System.out.println(gameMessage.currentLocation());
+            System.out.println(gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()));
+        }
 
-        if (isPositionEqual(gameMessage.currentLocation(), gameMessage.map().ports().get(((Tuple)ordreDeVisitePorts[i]).getPortIndex()))) {
+        if (isPositionEqual(gameMessage.currentLocation(),
+                gameMessage.map().ports().get(((Tuple) ordreDeVisitePorts[i]).getPortIndex()))) 
+        {
             System.out.println("docking succesful");
 
             i++;
-                
             action = new Action(ActionKind.DOCK);
             return action;
-        }else  if(i < ordreDeVisitePorts.length){
+        }
+        else if (i < ordreDeVisitePorts.length)
+        {
             action = new Action(ActionKind.SAIL, moveToNextPort(gameMessage));
             return action;
         }
